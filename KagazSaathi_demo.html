@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KagazSaathi - Samjho · Parkho · Karo · Bacho</title>
+<style>
+:root{--or:#E4512A;--bl:#2B7FDB;--am:#F2A33A;--nv:#1E2A4A;--bg:#EFF4F8;--ln:#D5DCE6;--gr:#6b7590}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;color:var(--nv);background:#fff}
+.w{max-width:880px;margin:0 auto;padding:20px 16px 60px}
+h1{margin:0;font-size:28px}h1 span{color:var(--or)}.tag{color:var(--gr);margin:4px 0 18px;font-size:14px}
+.card{background:var(--bg);border:1px solid var(--ln);border-radius:12px;padding:16px;margin:14px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:150px}
+label{font-size:12px;color:var(--gr);display:block;margin:0 0 4px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--ln);border-radius:8px;font:inherit;background:#fff}
+textarea{min-height:70px}
+button{background:var(--or);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+button.s{background:var(--bl)}button.g{background:#fff;color:var(--nv);border:1px solid var(--ln)}button:disabled{opacity:.5}
+#pv{max-width:100%;max-height:220px;border-radius:8px;margin-top:10px;display:none}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.st{padding:4px 10px;border-radius:99px;border:1px solid var(--ln);font-size:12px;color:var(--gr);background:#fff}
+.st.on{border-color:var(--bl);color:var(--bl)}.st.ok{background:var(--bl);color:#fff;border-color:var(--bl)}
+.badge{display:inline-block;padding:4px 12px;border-radius:99px;color:#fff;font-weight:700;font-size:13px}
+.low{background:#2e9d5b}.medium{background:var(--am)}.high{background:#d33}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:6px 4px;border-bottom:1px solid var(--ln);vertical-align:top}td:first-child{color:var(--gr);width:38%}
+ul{margin:6px 0 0;padding-left:20px}li{margin:4px 0}h3{margin:0 0 8px;font-size:15px}
+.src a{display:block;font-size:13px;color:var(--bl);margin:3px 0;word-break:break-all}
+pre{white-space:pre-wrap;background:#fff;border:1px solid var(--ln);border-radius:8px;padding:12px;font:inherit;font-size:14px}
+.err{color:#d33;font-weight:600}.note{font-size:12px;color:var(--gr)}
+</style></head><body><div class="w">
+<h1>Kagaz<span>Saathi</span></h1><div class="tag">Samjho · Parkho · Karo · Bacho - Gemini-powered document decoder, verifier, scam shield &amp; action agent</div>
+
+<div class="card"><div class="row">
+<div><label>Gemini API key (stored only in this browser)</label><input id="key" type="password" placeholder="Paste key from aistudio.google.com"></div>
+<div><label>Model</label><input id="model" list="ml" value="gemini-flash-latest"><datalist id="ml"><option>gemini-flash-latest</option><option>gemini-2.5-flash</option><option>gemini-2.5-pro</option></datalist></div>
+<div><label>Answer in</label><select id="lang"><option>Hindi</option><option>English</option><option>Hinglish</option><option>Punjabi</option><option>Marathi</option><option>Bengali</option><option>Tamil</option><option>Telugu</option></select></div>
+<div><label>Mode</label><select id="mode"><option value="general">General citizen</option><option value="kisan">Kisan (land, scheme, loan, insurance)</option></select></div>
+</div></div>
+
+<div class="card"><h3>1. Show your document</h3>
+<input id="file" type="file" accept="image/*" capture="environment">
+<img id="pv" alt="preview">
+<label style="margin-top:10px">...or paste an SMS / WhatsApp / email text</label><textarea id="txt" placeholder="e.g. Your KYC will expire today. Click this link to avoid account block..."></textarea>
+<div style="margin-top:10px"><button id="go">Analyze</button> <button class="g" id="demo">Try sample scam text</button></div>
+<div class="steps" id="steps"><span class="st" id="s1">Decode</span><span class="st" id="s2">Scam Shield</span><span class="st" id="s3">Verify (Search)</span><span class="st" id="s4">Act</span></div>
+<div id="msg" class="note"></div></div>
+<div id="out"></div>
+<p class="note">Information only, not legal advice. For high-risk documents contact an official helpline or office. Built for Hackdays 2.0 by The Falcons.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);let img=null,res=null;
+try{$('key').value=localStorage.getItem('gk')||''}catch(e){}
+$('key').onchange=()=>{try{localStorage.setItem('gk',$('key').value)}catch(e){}};
+$('demo').onclick=()=>{$('txt').value='URGENT: Your SBI account will be blocked today due to incomplete KYC. Update now: http://sbi-kyc-update.xyz/login or call 9XXXXXXXXX. - SBI Team';};
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const m=1600,k=Math.min(1,m/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);const u=cv.toDataURL('image/jpeg',.85);img=u.split(',')[1];$('pv').src=u;$('pv').style.display='block'};im.src=r.result};r.readAsDataURL(f)};
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
+function step(n,s){$('s'+n).className='st '+s}
+async function g(parts,extra){const k=$('key').value.trim();if(!k)throw new Error('Please paste your Gemini API key first.');
+ const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent($('model').value.trim())+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body:JSON.stringify(Object.assign({contents:[{role:'user',parts}]},extra))});
+ const d=await r.json();if(!r.ok)throw new Error((d.error&&d.error.message)||'Gemini API error '+r.status);
+ const c=d.candidates&&d.candidates[0];if(!c||!c.content)throw new Error('Empty response from Gemini (possibly blocked). Try again.');return{text:c.content.parts.map(p=>p.text||'').join(''),meta:c.groundingMetadata||{}}}
+const S={type:'OBJECT',properties:{doc_type:{type:'STRING'},sender:{type:'STRING'},summary:{type:'STRING'},key_facts:{type:'ARRAY',items:{type:'OBJECT',properties:{label:{type:'STRING'},value:{type:'STRING'}},required:['label','value']}},amount:{type:'STRING'},deadline:{type:'STRING'},risk_level:{type:'STRING',enum:['low','medium','high']},scam_score:{type:'INTEGER'},red_flags:{type:'ARRAY',items:{type:'STRING'}},next_steps:{type:'ARRAY',items:{type:'STRING'}},claims_to_verify:{type:'ARRAY',items:{type:'STRING'}}},required:['doc_type','summary','risk_level','scam_score','next_steps']};
+function sec(title){const c=el('div','card');c.appendChild(el('h3','',title));$('out').appendChild(c);return c}
+$('go').onclick=async()=>{
+ const L=$('lang').value,kis=$('mode').value==='kisan',t=$('txt').value.trim();
+ if(!img&&!t){$('msg').textContent='Upload a photo or paste a message first.';return}
+ $('out').innerHTML='';$('msg').className='note';$('msg').textContent='';['1','2','3','4'].forEach(n=>step(n,''));$('go').disabled=true;res=null;
+ try{
+  step(1,'on');$('msg').textContent='Reading the document with Gemini vision...';
+  const p=[];if(img)p.push({inline_data:{mime_type:'image/jpeg',data:img}});
+  p.push({text:'You are KagazSaathi, an assistant that helps ordinary Indians understand official papers and spot scams. '+(kis?'The user is a farmer: pay special attention to land records, PM-Kisan/scheme letters, crop loans and insurance. ':'')+'Analyze the attached document'+(t?' and/or this text:\n"""'+t+'"""':'')+'. Write summary, key_facts values, red_flags and next_steps in simple '+L+' (short sentences, no jargon). deadline must be YYYY-MM-DD or empty. scam_score is 0-100 (likelihood of fraud/impersonation; check urgency, odd links/domains, requests for money/OTP/KYC, mismatched sender). risk_level reflects financial/legal consequence or scam risk. claims_to_verify: up to 3 short English web-search queries to verify the rules, schemes or deadlines mentioned.'});
+  const d=await g(p,{generationConfig:{responseMimeType:'application/json',responseSchema:S,temperature:.2}});
+  res=JSON.parse(d.text);step(1,'ok');step(2,'ok');
+  const c1=sec(res.doc_type+(res.sender?' - '+res.sender:''));
+  const b=el('span','badge '+res.risk_level,'Risk: '+res.risk_level.toUpperCase()+' | Scam score '+res.scam_score+'/100');c1.appendChild(b);
+  c1.appendChild(el('p','',res.summary));
+  const tb=el('table');(res.key_facts||[]).concat(res.amount?[{label:'Amount',value:res.amount}]:[],res.deadline?[{label:'Deadline',value:res.deadline}]:[]).forEach(f=>{const r=el('tr');r.appendChild(el('td','',f.label));r.appendChild(el('td','',f.value));tb.appendChild(r)});c1.appendChild(tb);
+  if((res.red_flags||[]).length){const h=el('h3','','Red flags');h.style.marginTop='12px';c1.appendChild(h);const u=el('ul');res.red_flags.forEach(x=>u.appendChild(el('li','',x)));c1.appendChild(u)}
+  const h2=el('h3','','What to do next');h2.style.marginTop='12px';c1.appendChild(h2);const u2=el('ul');res.next_steps.forEach(x=>u2.appendChild(el('li','',x)));c1.appendChild(u2);
+  step(3,'on');$('msg').textContent='Verifying with Google Search grounding...';
+  const q=(res.claims_to_verify||[]).join('; ')||res.doc_type;
+  const v=await g([{text:'Using Google Search, verify the following about an Indian official document/message. Document type: '+res.doc_type+'; sender: '+(res.sender||'unknown')+'; summary: '+res.summary+'. Points to check: '+q+'. Say in simple '+L+' (max 6 short lines): is the sender/claim legitimate, are the rules/deadlines correct, and what official website or helpline to use. If you cannot confirm something, say so clearly.'}],{tools:[{google_search:{}}]});
+  step(3,'ok');const c2=sec('Verified with Google Search');c2.appendChild(el('p','',v.text));
+  const ch=(v.meta.groundingChunks||[]).filter(x=>x.web);if(ch.length){const sd=el('div','src');ch.slice(0,5).forEach(x=>{const a=el('a','',x.web.title||x.web.uri);a.href=x.web.uri;a.target='_blank';a.rel='noopener noreferrer';sd.appendChild(a)});c2.appendChild(sd)}
+  res.verify=v.text;step(4,'on');
+  const c3=sec('Act');const ar=el('div','row');
+  const bl=el('button','','Draft reply letter');bl.onclick=async()=>{bl.disabled=true;bl.textContent='Drafting...';try{const r=await g([{text:'Write a short, polite, ready-to-send reply/application letter in '+L+' (plus a 2-line English version) for this situation. Document: '+res.doc_type+'; sender: '+(res.sender||'')+'; summary: '+res.summary+'. Use [placeholders] for personal details. Output only the letter.'}],{generationConfig:{temperature:.4}});const pr=el('pre','',r.text);c3.appendChild(pr)}catch(e){c3.appendChild(el('div','err',e.message))}bl.textContent='Draft reply letter';bl.disabled=false};ar.appendChild(bl);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(res.deadline||'')){const br=el('button','s','Add deadline reminder (.ics)');br.onclick=()=>{const d=res.deadline.replace(/-/g,'');const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//KagazSaathi//EN','BEGIN:VEVENT','UID:'+Date.now()+'@kagazsaathi','DTSTAMP:'+new Date().toISOString().replace(/[-:]|\.\d+/g,''),'DTSTART;VALUE=DATE:'+d,'SUMMARY:Deadline: '+res.doc_type,'DESCRIPTION:'+res.summary.replace(/\n/g,' '),'BEGIN:VALARM','TRIGGER:-P2D','ACTION:DISPLAY','DESCRIPTION:Deadline in 2 days','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download='kagazsaathi-deadline.ics';a.click()};ar.appendChild(br)}
+  const bm=el('button','s','Find nearest office');bm.onclick=()=>window.open('https://www.google.com/maps/search/'+encodeURIComponent((res.sender&&res.sender.length<60?res.sender:res.doc_type)+' office near me'),'_blank');ar.appendChild(bm);
+  const bs=el('button','g','Read aloud');bs.onclick=()=>{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(res.summary+' '+(res.verify||''));u.lang={Hindi:'hi-IN',Hinglish:'hi-IN',English:'en-IN',Punjabi:'pa-IN',Marathi:'mr-IN',Bengali:'bn-IN',Tamil:'ta-IN',Telugu:'te-IN'}[L]||'en-IN';speechSynthesis.speak(u)};ar.appendChild(bs);
+  c3.appendChild(ar);step(4,'ok');$('msg').textContent='Done.';
+ }catch(e){$('msg').className='err';$('msg').textContent=e.message}
+ $('go').disabled=false};
+</script></body></html>
